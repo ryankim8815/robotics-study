@@ -1,0 +1,19 @@
+# 로컬 환경 설정 (.env.example 을 복사해서 사용)
+.env
+
+# colcon 빌드 산출물 (칩 종류별로 다르므로 커밋하지 않음)
+ws/build/
+ws/install/
+ws/log/
+
+# rosbag 녹화 파일 (용량이 큼)
+*.mcap
+*.db3
+rosbag2_*/
+
+# Python
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store

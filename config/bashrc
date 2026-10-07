@@ -1,0 +1,19 @@
+# 컨테이너의 /root/.bashrc 로 마운트됨 (호스트에서 편집)
+# `docker compose exec <service> bash` 는 ros_entrypoint.sh 를 거치지 않으므로 여기서 ROS 환경을 로드한다.
+
+source /opt/ros/${ROS_DISTRO}/setup.bash
+
+# 워크스페이스를 빌드했다면 overlay 적용
+if [ -f /root/ros2_ws/install/setup.bash ]; then
+  source /root/ros2_ws/install/setup.bash
+fi
+
+# colcon 자동완성
+if [ -f /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash ]; then
+  source /usr/share/colcon_argcomplete/hook/colcon-argcomplete.bash
+fi
+
+# 워크스페이스 빌드 후 바로 overlay 재적용
+alias cb='(cd /root/ros2_ws && colcon build --symlink-install) && source /root/ros2_ws/install/setup.bash'
+
+PS1='\[\e[1;32m\][\h|${ROS_DISTRO}|domain:${ROS_DOMAIN_ID:-0}]\[\e[0m\] \w \$ '

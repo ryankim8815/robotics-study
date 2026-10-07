@@ -1,0 +1,80 @@
+# ROS 2 Jazzy 학습 환경 (Apple Silicon / M1 Mac)
+#
+#   cp .env.example .env                      # 최초 1회: 로컬 환경 설정 파일 생성 (.env 는 git 제외)
+#   docker compose up -d                      # .env 의 COMPOSE_PROFILES 기준으로 기동
+#   open http://localhost:8080                # 브라우저 GUI (RViz, rqt, turtlesim, Gazebo 창이 여기 표시됨)
+#   docker compose exec desktop-full bash     # 컨테이너 셸 진입 (여러 번 실행 = 터미널 여러 개)
+#   docker compose --profile simulation up -d # 다른 이미지 추가 기동
+#   docker compose down                       # 종료 (ws/, data/ 는 호스트에 남음)
+#
+# 참고: osrf/ros:jazzy-* 이미지는 linux/amd64 전용 → Docker Desktop 의 Rosetta 로 에뮬레이션 실행.
+#       성능이 부족하면 'native' 프로파일(arm64 네이티브 빌드)을 사용.
+
+name: ros2-jazzy
+
+x-ros-common: &ros-common
+  init: true
+  command: sleep infinity          # 컨테이너를 띄워두고 exec 로 셸 진입
+  working_dir: /root/ros2_ws
+  shm_size: 1gb                    # Fast DDS 공유메모리 전송용 (기본 64MB는 이미지/포인트클라우드에 부족)
+  depends_on:
+    - novnc
+  environment:
+    DISPLAY: novnc:0               # GUI 출력 → novnc 컨테이너의 X 서버
+    LIBGL_ALWAYS_SOFTWARE: "1"     # Mac 에는 컨테이너용 GPU 가 없으므로 Mesa(llvmpipe) 소프트웨어 렌더링
+    QT_X11_NO_MITSHM: "1"          # 컨테이너 간 X 공유메모리 미사용
+    ROS_DOMAIN_ID: ${ROS_DOMAIN_ID:-0}
+  volumes:
+    - ./ws:/root/ros2_ws           # colcon 워크스페이스 (src/build/install/log)
+    - ./data:/root/data            # rosbag, 맵, URDF 등 공유 데이터
+    - ./config/bashrc:/root/.bashrc:ro
+
+services:
+  # 브라우저 기반 GUI 서버 (arm64 네이티브): Xvnc(X 서버 + VNC) + noVNC
+  novnc:
+    build: ./docker/novnc
+    image: ros2-jazzy-novnc:local
+    init: true
+    environment:
+      DISPLAY_WIDTH: ${DISPLAY_WIDTH:-1600}
+      DISPLAY_HEIGHT: ${DISPLAY_HEIGHT:-900}
+    ports:
+      - "127.0.0.1:${NOVNC_PORT:-8080}:8080"   # 로컬에서만 접근 (VNC 무인증이므로 외부 노출 금지)
+
+  # ROS 2 Desktop: rviz2, rqt, turtlesim, demo/tutorial 노드 → CLI·통신 개념 학습
+  desktop:
+    <<: *ros-common
+    profiles: [desktop]
+    image: osrf/ros:jazzy-desktop-noble
+    platform: linux/amd64
+    hostname: desktop
+
+  # Desktop + perception + simulation(Gazebo Harmonic) → 전체 튜토리얼용 (기본값)
+  # 주의: Rosetta 에뮬레이션에서 Gazebo GUI 는 멈춤 (서버 `gz sim -s` 는 동작) → GUI 는 native 사용
+  desktop-full:
+    <<: *ros-common
+    profiles: [desktop-full]
+    image: osrf/ros:jazzy-desktop-full-noble
+    platform: linux/amd64
+    hostname: desktop-full
+
+  # ros-base + Gazebo Harmonic(ros_gz), RViz/rqt 없음 → 시뮬레이터 전용 노드 분리 실습
+  simulation:
+    <<: *ros-common
+    profiles: [simulation]
+    image: osrf/ros:jazzy-simulation-noble
+    platform: linux/amd64
+    hostname: simulation
+
+  # (선택) osrf 와 동일한 레시피를 arm64 로 직접 빌드 → 에뮬레이션 없이 네이티브 속도
+  # 주의: amd64 서비스와 ws/ 를 공유하므로 전환 시 ws/build ws/install ws/log 삭제 후 재빌드
+  native:
+    <<: *ros-common
+    profiles: [native]
+    build:
+      context: ./docker/native
+      args:
+        ROS_VARIANT: ${NATIVE_VARIANT:-desktop-full}
+    image: ros2-jazzy-native:${NATIVE_VARIANT:-desktop-full}
+    platform: linux/arm64
+    hostname: native
