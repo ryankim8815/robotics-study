@@ -11,7 +11,7 @@ robotics-study/
 ├── docker/
 │   ├── novnc/              # 브라우저 GUI 서버 이미지 (arm64 네이티브)
 │   └── native/             # (선택) arm64 네이티브 ROS 이미지
-├── notes/                  # 학습 노트 (01-turtlesim.md …)
+├── notes/                  # 학습 노트 (날짜-주제.md, 예: 2026-1007-turtlesim.md)
 ├── ws/                     # → /root/ros2_ws  (colcon 워크스페이스, src/에 패키지 작성)
 └── data/                   # → /root/data     (rosbag, 맵, URDF 등)
 ```

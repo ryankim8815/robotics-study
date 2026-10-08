@@ -1,0 +1,6 @@
+/lesson_13_cmd_vel_parameters:
+  ros__parameters:
+    angular_speed: 0.5
+    linear_speed: 1.0
+    start_type_description_service: true
+    use_sim_time: false
