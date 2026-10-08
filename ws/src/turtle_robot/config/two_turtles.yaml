@@ -1,0 +1,6 @@
+/slow_turtle:
+  ros__parameters:
+    linear_speed: 0.5
+/fast_turtle:
+  ros__parameters:
+    linear_speed: 3.0
