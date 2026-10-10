@@ -106,7 +106,7 @@ osrf가 공개한 Dockerfile을 보면, 이미지를 만드는 방법은 사실�
 | 구분 | `osrf/ros:jazzy-desktop-full` | native (`ros2-jazzy-native:desktop-full`) |
 |---|---|---|
 | 베이스 이미지 | `osrf/ros:jazzy-desktop-noble` (Intel 전용) | `ros:jazzy-ros-base-noble` (공식 이미지, M1 지원) |
-| 설치 패키지 | `ros-jazzy-desktop-full` | 동일 |
+| 설치 패키지 | `ros-jazzy-desktop-full` | 동일 + Gazebo·SLAM 실습용 패키지 (TurtleBot3 시뮬레이션·조종, slam_toolbox, nav2_map_server, nav2_bringup) |
 | 받는 방법 | `docker pull` (완성된 이미지) | 내 Mac에서 빌드 (약 3~4분) |
 | 패키지 버전 | 2026-06 시점으로 고정 (ros_gz_sim 1.0.22) | 빌드한 날의 최신 버전 (ros_gz_sim 1.0.24) |
 | 실행 방식 | Rosetta 번역 | M1에서 직접 실행 |
